@@ -158,7 +158,7 @@ def experience_extractor(resume_content):
         index_list.append(i.start())
     return experience_returner(index_list,resume_content)  
 
-def proper_ranking_value_dataframe(indexes,experience,JD_Dataframe_copy):
+def proper_ranking_value_dataframe(indexes,Dicts,experience,JD_Dataframe_copy):
 
     """this function ranks the return recommendation.
 
@@ -177,7 +177,7 @@ def proper_ranking_value_dataframe(indexes,experience,JD_Dataframe_copy):
     output_indexes_satisfied = []
     output_indexes_not_satisfied = []
     Dict={}
-    dictt = {'File_name':[],'Job_Title':[],'Experience':[]}
+    dictt = {'File_name':[],'Job_Title':[],'Similarity':[],'Experience':[]}
     df = pd.DataFrame(dictt)
     for i in indexes:
         if experience>= JD_Dataframe_copy.Lower_Exp[i] and experience<= JD_Dataframe_copy.Higher_Exp[i] :
@@ -200,7 +200,8 @@ def proper_ranking_value_dataframe(indexes,experience,JD_Dataframe_copy):
         j_t = " ".join(x)
         l_e = JD_Dataframe_copy.Experience[output[1][i]]
         f_n = JD_Dataframe_copy.File_name[output[1][i]]
-        df.loc[len(df.index)] = [f_n,j_t,l_e]
+        sim = round(Dicts[output[1][i]]*100)
+        df.loc[len(df.index)] = [f_n,j_t,str(sim)+"%",l_e]
     df.index = np.arange(1, len(df) + 1)    
     return df 
     # return np.concatenate((condition_satisfied_arr, condition_not_satisfied_arr), axis = 0)         
@@ -230,27 +231,34 @@ def jd_matcher_dataframe(reading_cv,JD_Dataframe_copy,JD_Dataframe,cv,vector):
     distances = sorted(list(enumerate(similarity[-1])),reverse=True,key = lambda x: x[1])
     Job_Titles = []
     Job_Indexes = []
-    for i in distances[1:6]: 
+    cosine_sim = []
+    Dict = {}
+    for i in distances[1:6]:
+      cosine_sim.append(i) 
       Job_Indexes.append(i[0])
       Job_Titles.append(JD_Dataframe_copy.Job_Title[i[0]])
       # print(JD_Dataframe_copy.Job_Title[i[0]],'\t',JD_Dataframe_copy.Experience[i[0]])
     JD_Dataframe.drop(JD_Dataframe.index[len(JD_Dataframe):], inplace=True) 
 
+    for i in cosine_sim:
+      Dict[i[0]]=i[1]
+
     if experience:
         st.write("Job Profile Recommendation is based on experience and skills")
-        return proper_ranking_value_dataframe(Job_Indexes,experience,JD_Dataframe_copy)
+        return proper_ranking_value_dataframe(Job_Indexes,Dict,experience,JD_Dataframe_copy)
     else:
         st.write("Could not detect the experience. Job Profile Recommendation is based on skills")
-        dictt = {'File_name':[],'Job_Title':[],'Experience':[]}
+        dictt = {'File_name':[],'Job_Title':[],'Similarity':[],'Experience':[]}
         df = pd.DataFrame(dictt)
         for i in range(len(Job_Titles)):
             j_t = Job_Titles[i]
+            sim = round(Dict[Job_Indexes[i]]*100)
             l_e = JD_Dataframe_copy.Experience[Job_Indexes[i]]
             f_n = JD_Dataframe_copy.File_name[Job_Indexes[i]]
             txt1 = j_t.split()
             x = [i.capitalize() for i in txt1]
             j_t = " ".join(x)
-            df.loc[len(df.index)] = [f_n,j_t,l_e]
+            df.loc[len(df.index)] = [f_n,j_t,str(sim)+"%",l_e]
         df.index = np.arange(1, len(df) + 1)    
         return df          
 
