@@ -288,3 +288,11 @@ def ui_of_jd_recommender(JD_Dataframe_copy,JD_Dataframe,cv,vector):
                             }
             st.write("Candidate Experience: ",file_details["Candidate_Experience"]) 
             st.write(jd_matcher_dataframe(raw_text,JD_Dataframe_copy,JD_Dataframe,cv,vector))
+            
+if __name__ == "__main__":
+    JD_Dataframe_copy,JD_Dataframe,cv,vector = initialising()
+    ui_of_job_profile_recommender(JD_Dataframe_copy,JD_Dataframe,cv,vector)            
+            
+            
+            
+            
